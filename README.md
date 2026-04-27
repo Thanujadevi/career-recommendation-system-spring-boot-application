@@ -66,7 +66,4 @@ src/main/resources/data.sql
 src/main/java/com/example/career_recommendation/config/SecurityConfig.java
 src/main/java/com/example/career_recommendation/service/impl/RecommendationServiceImpl.java
 
-Contact
-Let me know if you want this saved as a file in your project!
-
 
