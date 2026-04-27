@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Generate Recommendations — Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+    <style>
+        body{background:#f1f5f9;}
+        .sidebar{background:linear-gradient(180deg,#1e293b,#0f172a);min-height:100vh;width:240px;position:fixed;top:0;left:0;padding-top:20px;z-index:100;}
+        .sidebar .brand{color:#fff;font-weight:700;font-size:1.1rem;padding:16px 20px 24px;border-bottom:1px solid #334155;}
+        .sidebar a{display:block;color:#94a3b8;padding:10px 20px;text-decoration:none;font-size:.9rem;border-left:3px solid transparent;transition:.2s;}
+        .sidebar a:hover,.sidebar a.active{color:#fff;background:rgba(255,255,255,.07);border-left-color:#3b82f6;}
+        .sidebar a i{margin-right:8px;}
+        .main{margin-left:240px;padding:30px;}
+        .card{border:none;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+        .rank-badge-1{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;}
+        .rank-badge-2{background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;}
+        .rank-badge-3{background:linear-gradient(135deg,#92400e,#78350f);color:#fff;}
+        .score-bar{height:10px;border-radius:5px;background:linear-gradient(90deg,#6366f1,#8b5cf6);}
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="brand"><i class="bi bi-mortarboard-fill me-2"></i>Career Admin</div>
+    <a href="/admin/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="/admin/students"><i class="bi bi-people"></i>Students</a>
+    <a href="/admin/careers"><i class="bi bi-briefcase"></i>Careers</a>
+    <a href="/admin/skills"><i class="bi bi-tools"></i>Skills</a>
+        <a href="/admin/aptitude"><i class="bi bi-clipboard2-check"></i>Aptitude Tests</a>
+
+    <a href="/admin/users"><i class="bi bi-person-badge"></i>Users</a>
+    <a href="/admin/recommend" class="active"><i class="bi bi-stars"></i>Recommendations</a>
+    <a href="/portal/logout" style="color:#f87171;"><i class="bi bi-box-arrow-right"></i>Logout</a>
+</div>
+<div class="main">
+    <h4 class="fw-bold mb-1">Career Recommendations</h4>
+    <p class="text-muted mb-4">Select a student and generate AI-powered career recommendations</p>
+
+    <div th:if="${error}" class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-1"></i><span th:text="${error}"></span></div>
+
+    <!-- Generate Form -->
+    <div class="card p-4 mb-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-check me-2 text-primary"></i>Select Student</h6>
+        <form th:action="@{/admin/recommend}" method="post" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Student</label>
+                <select name="studentId" class="form-select" required>
+                    <option value="">-- Choose a student --</option>
+                    <option th:each="s : ${students}" th:value="${s.studentId}"
+                            th:text="${s.fullName + ' (' + s.department + ', CGPA: ' + s.cgpa + ')'}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-warning w-100 fw-bold">
+                    <i class="bi bi-stars me-1"></i>Generate Recommendations
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div th:if="${results != null}">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-trophy me-2 text-warning"></i>
+                    Results for: <span th:text="${studentName}" class="text-primary"></span>
+                </h6>
+                <a th:href="@{/admin/recommend/download/{id}(id=${studentId})}"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-download me-1"></i>Download Report
+                </a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(results)}" class="alert alert-warning">
+                No careers matched the student's profile. Ensure the student has skills, interests, and aptitude results.
+            </div>
+
+            <div class="list-group list-group-flush" th:unless="${#lists.isEmpty(results)}">
+                <div th:each="r : ${results}" class="list-group-item border rounded mb-2 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge rounded-circle px-3 py-2"
+                              th:classappend="${r.rank == 1 ? 'rank-badge-1' : (r.rank == 2 ? 'rank-badge-2' : (r.rank == 3 ? 'rank-badge-3' : 'bg-light text-dark'))}"
+                              th:text="'#' + ${r.rank}">
+                        </span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold" th:text="${r.career.careerName}"></div>
+                            <div class="small text-muted" th:text="${r.career.domain + ' · Avg Salary: ₹' + #numbers.formatInteger(r.career.averageSalary,1,'COMMA')}"></div>
+                            <div class="mt-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:200px;height:8px;background:#e5e7eb;border-radius:4px;">
+                                        <div class="score-bar" th:style="'width:' + ${r.totalScore} + '%'"></div>
+                                    </div>
+                                    <small class="fw-semibold" th:text="${r.totalScore + ' / 100'}"></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-muted small" th:text="${r.career.requiredSkills}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

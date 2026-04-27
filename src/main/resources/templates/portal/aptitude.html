@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Aptitude Tests — Career Recommendation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+    <style>
+        body{background:#f0f4f8;}
+        .navbar{background:linear-gradient(135deg,#0d47a1,#1565c0);}
+        .page-header{background:linear-gradient(135deg,#e65100,#ff6d00);color:white;padding:30px;border-radius:0 0 20px 20px;margin-bottom:30px;}
+        .card{border:none;border-radius:14px;}
+        .test-card{border-left:5px solid #ff6d00;}
+        .attempted-card{border-left:5px solid #22c55e;opacity:.85;}
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-4 py-3">
+    <a class="navbar-brand fw-bold" href="/portal/dashboard"><i class="bi bi-mortarboard-fill me-2"></i>Career Recommendation</a>
+    <div class="d-flex gap-2">
+        <a href="/portal/dashboard" class="btn btn-outline-light btn-sm">Dashboard</a>
+        <a href="/portal/skills" class="btn btn-outline-light btn-sm">Skills</a>
+        <a href="/portal/interests" class="btn btn-outline-light btn-sm">Interests</a>
+        <a href="/portal/recommendation" class="btn btn-warning btn-sm fw-bold">Recommendations</a>
+        <a href="/portal/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+</nav>
+<div class="page-header px-4">
+    <h3 class="fw-bold mb-1"><i class="bi bi-clipboard2-check-fill me-2"></i>Aptitude Tests</h3>
+    <small class="opacity-75">Take assessments — your score is calculated automatically from your answers</small>
+</div>
+<div class="container-fluid px-4">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show py-2">
+        <i class="bi bi-check-circle me-1"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show py-2">
+        <i class="bi bi-exclamation-circle me-1"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Available Tests -->
+        <div class="col-md-7">
+            <h6 class="fw-bold mb-3">Available Tests</h6>
+            <div th:if="${#lists.isEmpty(tests)}" class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No tests available yet. Check back later.
+            </div>
+
+            <div th:each="t : ${tests}" class="card shadow-sm p-4 mb-3"
+                 th:classappend="${attemptedTestIds.contains(t.testId)} ? 'attempted-card' : 'test-card'">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold mb-1" th:text="${t.testName}"></h6>
+                        <div class="small text-muted mb-2">
+                            <span class="badge bg-secondary me-1" th:text="${t.testType}"></span>
+                            <span class="badge bg-light text-dark me-1" th:text="${t.difficultyLevel}"></span>
+                            <i class="bi bi-question-circle me-1"></i>
+                            <span th:text="${t.totalQuestions + ' questions'}"></span>
+                            <i class="bi bi-award ms-2 me-1"></i>
+                            <span th:text="${t.totalMarks + ' marks'}"></span>
+                            <i class="bi bi-clock ms-2 me-1"></i>
+                            <span th:text="${t.duration + ' min'}"></span>
+                        </div>
+                    </div>
+
+                    <!-- Show Take Test or Already Attempted -->
+                    <div th:if="${!attemptedTestIds.contains(t.testId)}">
+                        <a th:href="@{/portal/aptitude/take/{id}(id=${t.testId})}"
+                           class="btn fw-bold text-white"
+                           style="background:linear-gradient(135deg,#e65100,#ff6d00);">
+                            <i class="bi bi-play-fill me-1"></i>Take Test
+                        </a>
+                    </div>
+                    <div th:if="${attemptedTestIds.contains(t.testId)}">
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>Completed
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Results -->
+        <div class="col-md-5">
+            <h6 class="fw-bold mb-3">My Test Results</h6>
+            <div th:if="${#lists.isEmpty(results)}" class="text-center text-muted py-4">
+                <i class="bi bi-clipboard-x fs-2 d-block mb-2 opacity-50"></i>No tests taken yet.
+            </div>
+            <div th:each="r : ${results}" class="card shadow-sm p-3 mb-3">
+                <div class="fw-semibold mb-1" th:text="${r.test.testName}"></div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge fs-6 px-3"
+                          th:classappend="${r.percentage >= 70 ? 'bg-success' : (r.percentage >= 50 ? 'bg-warning text-dark' : 'bg-danger')}"
+                          th:text="${#numbers.formatDecimal(r.percentage,1,1) + '%'}"></span>
+                    <span class="text-muted small" th:text="${#numbers.formatDecimal(r.score,1,0) + ' / ' + r.test.totalMarks + ' marks'}"></span>
+                </div>
+                <div class="row g-1">
+                    <div class="col-4 text-center bg-light rounded p-1">
+                        <div class="small fw-bold text-primary" th:text="${#numbers.formatDecimal(r.logicalScore,1,0)}"></div>
+                        <div style="font-size:.7rem;" class="text-muted">Logical</div>
+                    </div>
+                    <div class="col-4 text-center bg-light rounded p-1">
+                        <div class="small fw-bold text-success" th:text="${#numbers.formatDecimal(r.verbalScore,1,0)}"></div>
+                        <div style="font-size:.7rem;" class="text-muted">Verbal</div>
+                    </div>
+                    <div class="col-4 text-center bg-light rounded p-1">
+                        <div class="small fw-bold text-warning" th:text="${#numbers.formatDecimal(r.quantitativeScore,1,0)}"></div>
+                        <div style="font-size:.7rem;" class="text-muted">Quantitative</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tip box -->
+            <div th:unless="${#lists.isEmpty(results)}" class="alert alert-info mt-3 py-2 small">
+                <i class="bi bi-lightbulb me-1"></i>
+                Your aptitude scores contribute to your career recommendations.
+                <a href="/portal/recommendation" class="fw-bold">View Recommendations →</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>My Profile — Career Recommendation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+    <style>
+        body{background:#f0f4f8;}
+        .navbar{background:linear-gradient(135deg,#0d47a1,#1565c0);}
+        .page-header{background:linear-gradient(135deg,#0d47a1,#0288d1);color:white;padding:30px;border-radius:0 0 20px 20px;margin-bottom:30px;}
+        .card{border:none;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+        .info-label{font-size:.78rem;color:#6c757d;text-transform:uppercase;letter-spacing:.05em;}
+        .info-value{font-size:1rem;font-weight:600;}
+        .cgpa-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#0288d1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;}
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-4 py-3">
+    <a class="navbar-brand fw-bold" href="/portal/dashboard"><i class="bi bi-mortarboard-fill me-2"></i>Career Recommendation</a>
+    <div class="d-flex gap-2">
+        <a href="/portal/dashboard" class="btn btn-outline-light btn-sm">Dashboard</a>
+        <a href="/portal/skills" class="btn btn-outline-light btn-sm">Skills</a>
+        <a href="/portal/interests" class="btn btn-outline-light btn-sm">Interests</a>
+        <a href="/portal/aptitude" class="btn btn-outline-light btn-sm">Aptitude</a>
+        <a href="/portal/recommendation" class="btn btn-warning btn-sm fw-bold">Recommendations</a>
+        <a href="/portal/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+</nav>
+<div class="page-header px-4">
+    <h3 class="fw-bold mb-0"><i class="bi bi-person-circle me-2"></i>My Profile</h3>
+    <small class="opacity-75">Manage your student information</small>
+</div>
+<div class="container-fluid px-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card p-4 text-center">
+                <div class="cgpa-circle mx-auto mb-3" th:text="${student.cgpa}"></div>
+                <h5 class="fw-bold" th:text="${student.fullName}"></h5>
+                <p class="text-muted mb-1" th:text="${student.department}"></p>
+                <span class="badge bg-primary" th:text="'Year ' + ${student.yearOfStudy}"></span>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Edit Student Details</h6>
+                <form th:action="@{/portal/profile/update}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="info-label">Full Name</div>
+                            <input type="text" class="form-control" name="fullName" th:value="${student.fullName}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Gender</div>
+                            <select class="form-control" name="gender" required>
+                                <option th:selected="${student.gender == 'Male'}">Male</option>
+                                <option th:selected="${student.gender == 'Female'}">Female</option>
+                                <option th:selected="${student.gender == 'Other'}">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Department</div>
+                            <input type="text" class="form-control" name="department" th:value="${student.department}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">College</div>
+                            <input type="text" class="form-control" name="collegeName" th:value="${student.collegeName}">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Enrollment Number</div>
+                            <input type="text" class="form-control" name="enrollmentNumber" th:value="${student.enrollmentNumber}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Year of Study</div>
+                            <input type="number" class="form-control" name="yearOfStudy" th:value="${student.yearOfStudy}" min="1" max="4" required>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Current CGPA</div>
+                            <input type="number" step="0.01" class="form-control" name="cgpa" th:value="${student.cgpa}" min="0" max="10" required>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Address</div>
+                            <input type="text" class="form-control" name="address" th:value="${student.address}">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-save me-1"></i>Update Profile
+                        </button>
+                        <a href="/portal/dashboard" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+                <div th:if="${success}" class="alert alert-success mt-3" th:text="${success}"></div>
+                <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
